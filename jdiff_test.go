@@ -1,10 +1,56 @@
 package jdiff
 
-import "testing"
+import (
+	"fmt"
+	"reflect"
+	"testing"
+)
 
 func TestDiff(t *testing.T) {
-	old := []byte(`{"module": {"config": {"updated": "2020-03-02 14:33:27", "revision": 2}, "instance": {"adminka": "http://localhost:8099", "adminkaTimeOut": 0, "timeout": 1, "attempts": 3, "maxCount": 0, "loginTimeout": 5, "bgInstancesCount": 0}}, "functional": {"workers": 3, "isGood":true, "dragons": {"col": 10, "kind": "Fire", "isDangerous": false}}, "environment": {"http": {"port": 8113, "mPort": 18103, "title": "Настройки Test Micro", "socket": "/var/run/emp/__APP_NAME__.socket", "mSocket": "/var/run/emp/m-__APP_NAME__.socket", "useSocket": false, "cancelingTimeOut": 15}, "db": {"pguser": "apps", "pgpassword": "qasw123", "pghost": "localhost", "pgport": 5432, "pgdatabase": "micro", "pgflags": "sslmode=disable", "statement_timeout": 100}, "rmq": {"queues": {"input": {"qos": 0, "args": null, "name": "empmicro.input", "consume": true, "durable": true, "exclusive": false, "autoDelete": false}, "input.err": {"qos": 0, "args": null, "name": "empmicro.input.err", "consume": false, "durable": true, "exclusive": false, "autoDelete": false}}, "server": {"addr": "localhost", "port": 5672, "login": "guest", "password": "guest"}}, "redis": {"db": 0, "host": "localhost", "port": 6379, "password": ""}}, "integration": {"eis": {"url": "http://localhost"}}}`)
-	new := []byte(`{"module": {"config": {"updated": "2020-03-02 14:33:27", "revision": 2}, "instance": {"adminka": "http://localhost:8099", "adminkaTimeOut": 0, "timeout": 1, "attempts": 3, "maxCount": 0, "loginTimeout": 5, "bgInstancesCount": 0}}, "functional": {"workers": 3, "isGood": true, "ponyName": "Star", "dragons": {"col": 10, "kind": "Fire", "isDangerous": false, "age": 1000000}}, "environment": {"http": {"port": 8113, "mPort": 18103, "title": "Настройки Test Micro", "socket": "/var/run/emp/__APP_NAME__.socket", "mSocket": "/var/run/emp/m-__APP_NAME__.socket", "useSocket": false, "cancelingTimeOut": 15}, "db": {"pguser": "apps", "pgpassword": "qasw123", "pghost": "localhost", "pgport": 5432, "pgdatabase": "micro", "pgflags": "sslmode=disable", "statement_timeout": 100}, "rmq": {"queues": {"input": {"qos": 0, "args": null, "name": "empmicro.input", "consume": true, "durable": true, "exclusive": false, "autoDelete": false}, "input.err": {"qos": 0, "args": null, "name": "empmicro.input.err", "consume": false, "durable": true, "exclusive": false, "autoDelete": false}}, "server": {"addr": "localhost", "port": 5672, "login": "guest", "password": "guest"}}, "redis": {"db": 0, "host": "localhost", "port": 6379, "password": ""}}, "integration": {"eis": {"url": "http://localhost"}}}`)
+	cases := []struct {
+		name string
+		old  []byte
+		new  []byte
+		want []DiffType
+	}{
+		{
+			name: "Нет изменений",
+			old:  []byte(`{"one":1, "two":"TWO"}`),
+			new:  []byte(`{"one":1, "two":"TWO"}`),
+			want: nil,
+		},
+		{
+			name: "Добавили параметр",
+			old:  []byte(`{"one":1, "two":"TWO"}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":true}`),
+			want: []DiffType{{
+				isAdd: true,
+				path:  "three",
+				value: []byte("true"),
+			}},
+		},
+		{
+			name: "Удалили параметр",
+			old:  []byte(`{"one":1, "two":"TWO","three":true}`),
+			new:  []byte(`{"one":1, "two":"TWO"}`),
+			want: []DiffType{{
+				isAdd: false,
+				path:  "three",
+				value: nil,
+			}},
+		},
+	}
 
-	Diff(old, new)
+	for _, c := range cases {
+		got, err := JDiff(c.old, c.new)
+		if err != nil {
+			t.Error(err.Error())
+		}
+		if !reflect.DeepEqual(got, c.want) {
+			t.Error("Error on " + c.name + ":\nold=" + string(c.old) +
+				"\nnew=" + string(c.new) +
+				"\nwant=" + fmt.Sprintf("%#v", c.want) +
+				"\ngot =" + fmt.Sprintf("%#v", got))
+		}
+	}
 }
