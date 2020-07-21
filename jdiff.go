@@ -19,11 +19,11 @@ func (d DiffType) String() string {
 func JDiff(old, new []byte) ([]DiffType, error) {
 	res, err := jdiff("", old, new)
 	if err != nil {
-		println("ERROR=" + err.Error())
+		return nil, err
 	}
 
 	for _, r := range res {
-		println(r.String())
+		println("\t\t" + r.String())
 	}
 	return res, nil
 }
@@ -120,9 +120,8 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 
 		// проверяем объекты, что могли добавиться
 		for k, newV := range newMap {
-			newVj, _ := newV.MarshalJSON()
+			// newVj, _ := newV.MarshalJSON()
 			if _, ok := oldMap[k]; !ok {
-				println("в new есть новый объект " + k + "=>" + string(newVj))
 				ret = append(ret, DiffType{
 					cmd:   "add",
 					path:  appendPath(path, k),

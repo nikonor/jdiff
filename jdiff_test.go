@@ -114,7 +114,12 @@ func TestDiff(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		println("begin::" + c.name)
+		println("\told=" + string(c.old))
+		println("\tnew=" + string(c.new))
+		println("\t===")
 		got, err := JDiff(c.old, c.new)
+		println("\t===")
 		if err != nil {
 			t.Error(err.Error())
 		}
@@ -124,5 +129,6 @@ func TestDiff(t *testing.T) {
 				"\nwant=" + fmt.Sprintf("%#v", c.want) +
 				"\ngot =" + fmt.Sprintf("%#v", got))
 		}
+		println("end::" + c.name + "\n")
 	}
 }
