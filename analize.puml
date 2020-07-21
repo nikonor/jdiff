@@ -1,0 +1,40 @@
+@startuml
+:вызываем jdiff(path old, new []byte);
+:json.Unmarshal для old => (oldMap, oldErr,err);
+note
+	oldMap -
+		словарь вида map[string]json.json.RawMessage
+	oldErr -
+		*json.UnmarshalTypeError
+	err -
+		любая другая ошибка
+end note
+If (err != nil) then (да)
+	#Red:Выходим с ошибкой;
+	stop;
+endif;
+:json.Unmarshal для new => (newMap, newErr);
+note
+	newMap -
+		словарь вида map[string]json.json.RawMessage
+	newErr -
+		*json.UnmarshalTypeError
+	err -
+		любая другая ошибка
+end note
+If (err != nil) then (да)
+	#Red:Выходим с ошибкой;
+	stop;
+endif;
+If (oldErr == nil && newErr == nil) then (да)
+	:Это значит, что у нас объекты;
+	while (в oldMap есть элементы => взяли *ключ*)
+		If (в newMap есть *ключ*) then (да)
+			:рекурсивно запускаем этот же процесс
+			от oldMap[*ключ*]+newMap[*ключ*];
+		else (нет)
+			#Green:записываем себе, что нужно добавить oldMap[*ключ*];
+		endif;
+	endwhile
+endif;
+@enduml

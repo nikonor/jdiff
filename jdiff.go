@@ -6,7 +6,7 @@ import (
 )
 
 type DiffType struct {
-	isAdd bool
+	cmd   string
 	path  string
 	value json.RawMessage
 }
@@ -31,64 +31,101 @@ func JDiff(old, new []byte) ([]DiffType, error) {
 // TODO: надо возвращать что и куда надо добавить/удалить
 //      1) формат???
 func jdiff(path string, old, new []byte) ([]DiffType, error) {
-	println("path=" + path)
-	var ret []DiffType
-	// sjson.SetBytes()
+	println("\n\n" + path + "\n\told=" + string(old) + "\n\tnew=" + string(new))
+	var (
+		ret            []DiffType
+		oldMap, newMap map[string]json.RawMessage
+		oldErr, newErr *json.UnmarshalTypeError
+		ok             bool
+	)
+	// sj   son.SetBytes()
 
-	// TODO: анализ того, что пришло. Нужно ли разбирать на словарь?
-
-	var oldMap, newMap map[string]json.RawMessage
-
-	if err := json.Unmarshal(old, &oldMap); err != nil {
-		if _, ok := err.(*json.UnmarshalTypeError); ok {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	if err := json.Unmarshal(new, &newMap); err != nil {
-		if _, ok := err.(*json.UnmarshalTypeError); ok {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	// проверяем объекты, что есть в old
-	for k, oldV := range oldMap {
-		newV, ok := newMap[k]
-		oldVj, _ := oldV.MarshalJSON()
-		newVj, _ := newV.MarshalJSON()
-
-		if !ok {
-			// объект удален
-			println("в new нет " + k + "=>" + string(oldVj))
-			ret = append(ret, DiffType{
-				isAdd: false,
-				path:  appendPath(path, k),
-				value: newV,
-			})
-			continue
-		}
-
-		// объект найден - проверяем его
-		r, err := jdiff(appendPath(path, k), oldVj, newVj)
-		if err != nil {
+	err := json.Unmarshal(old, &oldMap)
+	if err != nil {
+		if oldErr, ok = err.(*json.UnmarshalTypeError); !ok {
 			return nil, err
 		}
-		ret = append(ret, r...)
 	}
 
-	// проверяем объекты, что могли добавиться
-	for k, newV := range newMap {
-		newVj, _ := newV.MarshalJSON()
-		if _, ok := oldMap[k]; !ok {
-			println("в new есть новый объект " + k + "=>" + string(newVj))
+	err = json.Unmarshal(new, &newMap)
+	if err != nil {
+		if newErr, ok = err.(*json.UnmarshalTypeError); !ok {
+			return nil, err
+		}
+	}
+
+	//  если было что-то, а стало другого типа, то записываем заменить
+	//  если было значений тоже проверяем тип
+	//  если чего-то не было, а мы его нашли, то записываем добавить
+	//  если что-то было, а его не стало, то записываем удалить
+
+	// fmt.Printf("%s =>\n\told=%s\n\tnew=%s\n", path, string(old), string(new))
+	// fmt.Printf("\n\toldErr=%#v\n\tnew=%#v\n\n", oldErr, newErr)
+
+	switch {
+
+	case oldErr != nil && newErr != nil:
+		// у два не объекта
+		if oldErr.Value != newErr.Value {
 			ret = append(ret, DiffType{
-				isAdd: true,
-				path:  appendPath(path, k),
-				value: newV,
+				cmd:   "set",
+				path:  path,
+				value: new,
 			})
 		}
+
+	case oldErr != nil && newErr == nil:
+		// было значение,а стало нет
+		println("тут:" + string(old) + "=>" + string(new))
+		ret = append(ret, DiffType{
+			cmd:   "set",
+			path:  path,
+			value: new,
+		})
+
+	case oldErr == nil && newErr != nil:
+
+	case oldErr == nil && newErr == nil:
+		// у нас два объекта
+
+		// проверяем объекты, что есть в old
+		for k, oldV := range oldMap {
+			newV, ok := newMap[k]
+			oldVj, _ := oldV.MarshalJSON()
+			newVj, _ := newV.MarshalJSON()
+
+			if !ok {
+				// объект удален
+				// println("в new нет " + k + "=>" + string(oldVj))
+				ret = append(ret, DiffType{
+					cmd:   "delete",
+					path:  appendPath(path, k),
+					value: newV,
+				})
+				continue
+			}
+
+			// объект найден - проверяем его
+			r, err := jdiff(appendPath(path, k), oldVj, newVj)
+			if err != nil {
+				return nil, err
+			}
+			ret = append(ret, r...)
+		}
+
+		// проверяем объекты, что могли добавиться
+		for k, newV := range newMap {
+			newVj, _ := newV.MarshalJSON()
+			if _, ok := oldMap[k]; !ok {
+				println("в new есть новый объект " + k + "=>" + string(newVj))
+				ret = append(ret, DiffType{
+					cmd:   "add",
+					path:  appendPath(path, k),
+					value: newV,
+				})
+			}
+		}
+
 	}
 
 	return ret, nil

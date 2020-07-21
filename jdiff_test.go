@@ -20,25 +20,54 @@ func TestDiff(t *testing.T) {
 			want: nil,
 		},
 		{
-			name: "Добавили параметр",
-			old:  []byte(`{"one":1, "two":"TWO"}`),
-			new:  []byte(`{"one":1, "two":"TWO","three":true}`),
-			want: []DiffType{{
-				isAdd: true,
-				path:  "three",
-				value: []byte("true"),
-			}},
+			name: "Cмена типа значения",
+			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
+			new:  []byte(`{"one":1, "two":22,"three":{"four":44}}`),
+			want: []DiffType{
+				{
+					cmd:   "set",
+					path:  "two",
+					value: []byte("22"),
+				},
+				{
+					cmd:   "set",
+					path:  "three.four",
+					value: []byte("44"),
+				},
+			},
 		},
 		{
-			name: "Удалили параметр",
-			old:  []byte(`{"one":1, "two":"TWO","three":true}`),
-			new:  []byte(`{"one":1, "two":"TWO"}`),
-			want: []DiffType{{
-				isAdd: false,
-				path:  "three",
-				value: nil,
-			}},
+			name: "Было значение, а стал объект",
+			old:  []byte(`{"one":1, "two":"TWO"}`),
+			new:  []byte(`{"one":1, "two": {"four":"FOUR"}}`),
+			want: []DiffType{
+				{
+					cmd:   "set",
+					path:  "two",
+					value: []byte(`{"four":"FOUR"}`),
+				},
+			},
 		},
+		// {
+		// 	name: "Добавили параметр",
+		// 	old:  []byte(`{"one":1, "two":"TWO"}`),
+		// 	new:  []byte(`{"one":1, "two":"TWO","three":true}`),
+		// 	want: []DiffType{{
+		// 		cmd: true,
+		// 		path:  "three",
+		// 		value: []byte("true"),
+		// 	}},
+		// },
+		// {
+		// 	name: "Удалили параметр",
+		// 	old:  []byte(`{"one":1, "two":"TWO","three":true}`),
+		// 	new:  []byte(`{"one":1, "two":"TWO"}`),
+		// 	want: []DiffType{{
+		// 		cmd: false,
+		// 		path:  "three",
+		// 		value: nil,
+		// 	}},
+		// },
 	}
 
 	for _, c := range cases {
