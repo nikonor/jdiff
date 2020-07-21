@@ -172,7 +172,7 @@ func cmdArray(old, new []byte) (bool, error) {
 		return false, err
 	}
 
-	// fmt.Printf("old=%#v\nnew=%#v\n", oldA.Array, newA.Array)
+	fmt.Printf("old=%#v\nnew=%#v\n", oldA.Array, newA.Array)
 	if len(oldA.Array) != len(newA.Array) {
 		return true, nil
 	}

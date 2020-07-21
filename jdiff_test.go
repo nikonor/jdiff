@@ -124,21 +124,21 @@ func TestDiff(t *testing.T) {
 		{
 			name: "Добавили массив",
 			old:  []byte(`{"one":1, "two":"TWO"}`),
-			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}}]}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}]}`),
 			want: []DiffType{{
 				cmd:   "add",
 				path:  "three",
-				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"}}]`),
+				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"}]`),
 			}},
 		},
 		{
 			name: "Добавили в массив элемент",
-			old:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}}]}`),
-			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}},{"key":3,"val":"3"}]}`),
+			old:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}]}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"},{"key":3,"val":"3"}]}`),
 			want: []DiffType{{
 				cmd:   "set",
 				path:  "three",
-				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"}},{"key":3,"val":"3"}]`),
+				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"},{"key":3,"val":"3"}]`),
 			}},
 		},
 		{
