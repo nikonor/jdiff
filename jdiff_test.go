@@ -48,26 +48,26 @@ func TestDiff(t *testing.T) {
 				},
 			},
 		},
-		// {
-		// 	name: "Добавили параметр",
-		// 	old:  []byte(`{"one":1, "two":"TWO"}`),
-		// 	new:  []byte(`{"one":1, "two":"TWO","three":true}`),
-		// 	want: []DiffType{{
-		// 		cmd: true,
-		// 		path:  "three",
-		// 		value: []byte("true"),
-		// 	}},
-		// },
-		// {
-		// 	name: "Удалили параметр",
-		// 	old:  []byte(`{"one":1, "two":"TWO","three":true}`),
-		// 	new:  []byte(`{"one":1, "two":"TWO"}`),
-		// 	want: []DiffType{{
-		// 		cmd: false,
-		// 		path:  "three",
-		// 		value: nil,
-		// 	}},
-		// },
+		{
+			name: "Добавили параметр",
+			old:  []byte(`{"one":1, "two":"TWO"}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":true}`),
+			want: []DiffType{{
+				cmd:   "add",
+				path:  "three",
+				value: []byte("true"),
+			}},
+		},
+		{
+			name: "Удалили параметр",
+			old:  []byte(`{"one":1, "two":"TWO","three":true}`),
+			new:  []byte(`{"one":1, "two":"TWO"}`),
+			want: []DiffType{{
+				cmd:   "delete",
+				path:  "three",
+				value: nil,
+			}},
+		},
 	}
 
 	for _, c := range cases {

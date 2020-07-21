@@ -31,7 +31,7 @@ func JDiff(old, new []byte) ([]DiffType, error) {
 // TODO: надо возвращать что и куда надо добавить/удалить
 //      1) формат???
 func jdiff(path string, old, new []byte) ([]DiffType, error) {
-	println("\n\n" + path + "\n\told=" + string(old) + "\n\tnew=" + string(new))
+	// println("\n\n" + path + "\n\told=" + string(old) + "\n\tnew=" + string(new))
 	var (
 		ret            []DiffType
 		oldMap, newMap map[string]json.RawMessage
