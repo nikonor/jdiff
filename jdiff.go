@@ -1,4 +1,4 @@
-package jdiff
+package jsonconfigdiff
 
 import (
 	"encoding/json"
