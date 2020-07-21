@@ -111,6 +111,42 @@ func TestDiff(t *testing.T) {
 				value: nil,
 			}},
 		},
+		{
+			name: "Удалили целый массив",
+			old:  []byte(`{"one":1, "two":"TWO","three":[1,2,3,128]}`),
+			new:  []byte(`{"one":1, "two":"TWO"}`),
+			want: []DiffType{{
+				cmd:   "delete",
+				path:  "three",
+				value: nil,
+			}},
+		},
+		{
+			name: "Добавили массив",
+			old:  []byte(`{"one":1, "two":"TWO"}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, val:"2"}}]}`),
+			want: []DiffType{{
+				cmd:   "add",
+				path:  "three",
+				value: []byte(`[{"key":1,"val":"1"},{"key":2, val:"2"}}]`),
+			}},
+		},
+		{
+			name: "Добавили в массив элемент",
+			old:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, val:"2"}}]}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, val:"2"}},{"key":3,"val":"3"}]}`),
+			want: []DiffType{{
+				cmd:   "set",
+				path:  "three",
+				value: []byte(`[{"key":1,"val":"1"},{"key":2, val:"2"}},{"key":3,"val":"3"}]`),
+			}},
+		},
+		{
+			name: "Изменили элемент массива",
+			old:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, val:"2"},{"key":3,"val":"3333"}]}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, val:"2"},{"key":3,"val":"3"}]}`),
+			want: nil,
+		},
 	}
 
 	for _, c := range cases {
@@ -118,17 +154,18 @@ func TestDiff(t *testing.T) {
 		println("\told=" + string(c.old))
 		println("\tnew=" + string(c.new))
 		println("\t===")
-		got, err := JDiff(c.old, c.new)
-		println("\t===")
-		if err != nil {
-			t.Error(err.Error())
-		}
-		if !reflect.DeepEqual(got, c.want) {
-			t.Error("Error on " + c.name + ":\nold=" + string(c.old) +
-				"\nnew=" + string(c.new) +
-				"\nwant=" + fmt.Sprintf("%#v", c.want) +
-				"\ngot =" + fmt.Sprintf("%#v", got))
-		}
+		t.Run(c.name, func(t *testing.T) {
+			got, err := JDiff(c.old, c.new)
+			if err != nil {
+				t.Error(err.Error())
+			}
+			if !reflect.DeepEqual(got, c.want) {
+				t.Error("Error on " + c.name + ":\nold=" + string(c.old) +
+					"\nnew=" + string(c.new) +
+					"\nwant=" + fmt.Sprintf("%#v", c.want) +
+					"\ngot =" + fmt.Sprintf("%#v", got))
+			}
+		})
 		println("end::" + c.name + "\n")
 	}
 }

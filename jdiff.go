@@ -2,6 +2,7 @@ package jdiff
 
 import (
 	"encoding/json"
+	"fmt"
 	// "github.com/tidwall/sjson"
 )
 
@@ -28,10 +29,8 @@ func JDiff(old, new []byte) ([]DiffType, error) {
 	return res, nil
 }
 
-// TODO: надо возвращать что и куда надо добавить/удалить
-//      1) формат???
 func jdiff(path string, old, new []byte) ([]DiffType, error) {
-	// println("\n\n" + path + "\n\told=" + string(old) + "\n\tnew=" + string(new))
+	println("\n\n" + path + "\n\told=" + string(old) + "\n\tnew=" + string(new))
 	var (
 		ret            []DiffType
 		oldMap, newMap map[string]json.RawMessage
@@ -60,12 +59,30 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 	//  если что-то было, а его не стало, то записываем удалить
 
 	// fmt.Printf("%s =>\n\told=%s\n\tnew=%s\n", path, string(old), string(new))
-	// fmt.Printf("\n\toldErr=%#v\n\tnew=%#v\n\n", oldErr, newErr)
+	fmt.Printf("\n\toldErr=%#v\n\tnew=%#v\n\n", oldErr, newErr)
 
 	switch {
 
+	case oldErr != nil && newErr != nil && oldErr.Value == "array" && newErr.Value == "array":
+		// у нас два массива. будет сравнивать
+		// TODO:
+		if changed, err := cmdArray(
+			[]byte(`{"array":`+string(old)+`}`),
+			[]byte(`{"array":`+string(new)+`}`),
+		); err != nil {
+			return nil, err
+		} else {
+			if changed {
+				ret = append(ret, DiffType{
+					cmd:   "set",
+					path:  path,
+					value: new,
+				})
+			}
+		}
 	case oldErr != nil && newErr != nil:
 		// у два не объекта
+
 		if oldErr.Value != newErr.Value {
 			ret = append(ret, DiffType{
 				cmd:   "set",
@@ -141,4 +158,28 @@ func appendPath(path, k string) string {
 		ret = path + "."
 	}
 	return ret + k
+}
+
+func cmdArray(old, new []byte) (bool, error) {
+	var (
+		oldA, newA aType
+	)
+
+	if err := json.Unmarshal(old, &oldA); err != nil {
+		return false, err
+	}
+	if err := json.Unmarshal(new, &newA); err != nil {
+		return false, err
+	}
+
+	// fmt.Printf("old=%#v\nnew=%#v\n", oldA.Array, newA.Array)
+	if len(oldA.Array) != len(newA.Array) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+type aType struct {
+	Array []interface{} `json:"array"`
 }
