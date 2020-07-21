@@ -25,7 +25,7 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":22,"three":{"four":"FOUR"}}`),
 			want: []DiffType{
 				{
-					cmd:   "set",
+					cmd:   SetAction,
 					path:  "two",
 					value: []byte("22"),
 				},
@@ -37,7 +37,7 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO","three":{"four":44}}`),
 			want: []DiffType{
 				{
-					cmd:   "set",
+					cmd:   SetAction,
 					path:  "three.four",
 					value: []byte("44"),
 				},
@@ -49,7 +49,7 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two": {"four":"FOUR"}}`),
 			want: []DiffType{
 				{
-					cmd:   "set",
+					cmd:   SetAction,
 					path:  "two",
 					value: []byte(`{"four":"FOUR"}`),
 				},
@@ -61,7 +61,7 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{
 				{
-					cmd:   "set",
+					cmd:   SetAction,
 					path:  "two",
 					value: []byte(`"TWO"`),
 				},
@@ -73,7 +73,7 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"},"four":44}`),
 			want: []DiffType{
 				{
-					cmd:   "add",
+					cmd:   SetAction,
 					path:  "four",
 					value: []byte("44"),
 				},
@@ -85,7 +85,7 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR","five":false}}`),
 			want: []DiffType{
 				{
-					cmd:   "add",
+					cmd:   SetAction,
 					path:  "three.five",
 					value: []byte("false"),
 				},
@@ -96,7 +96,7 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":true}`),
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{{
-				cmd:   "delete",
+				cmd:   DelectAction,
 				path:  "three",
 				value: nil,
 			}},
@@ -106,7 +106,7 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{{
-				cmd:   "delete",
+				cmd:   DelectAction,
 				path:  "three",
 				value: nil,
 			}},
@@ -116,7 +116,7 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":[1,2,3,128]}`),
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{{
-				cmd:   "delete",
+				cmd:   DelectAction,
 				path:  "three",
 				value: nil,
 			}},
@@ -126,7 +126,7 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO"}`),
 			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}]}`),
 			want: []DiffType{{
-				cmd:   "add",
+				cmd:   SetAction,
 				path:  "three",
 				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"}]`),
 			}},
@@ -136,7 +136,7 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}]}`),
 			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"},{"key":3,"val":"3"}]}`),
 			want: []DiffType{{
-				cmd:   "set",
+				cmd:   SetAction,
 				path:  "three",
 				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"},{"key":3,"val":"3"}]`),
 			}},
@@ -150,10 +150,10 @@ func TestDiff(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		println("begin::" + c.name)
-		println("\told=" + string(c.old))
-		println("\tnew=" + string(c.new))
-		println("\t===")
+		// println("begin::" + c.name)
+		// println("\told=" + string(c.old))
+		// println("\tnew=" + string(c.new))
+		// println("\t===")
 		t.Run(c.name, func(t *testing.T) {
 			got, err := JDiff(c.old, c.new)
 			if err != nil {
@@ -166,6 +166,6 @@ func TestDiff(t *testing.T) {
 					"\ngot =" + fmt.Sprintf("%#v", got))
 			}
 		})
-		println("end::" + c.name + "\n")
+		// println("end::" + c.name + "\n")
 	}
 }

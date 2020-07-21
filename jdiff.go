@@ -2,8 +2,12 @@ package jdiff
 
 import (
 	"encoding/json"
-	"fmt"
 	// "github.com/tidwall/sjson"
+)
+
+const (
+	DelectAction = "delete"
+	SetAction    = "set"
 )
 
 type DiffType struct {
@@ -23,21 +27,16 @@ func JDiff(old, new []byte) ([]DiffType, error) {
 		return nil, err
 	}
 
-	for _, r := range res {
-		println("\t\t" + r.String())
-	}
 	return res, nil
 }
 
 func jdiff(path string, old, new []byte) ([]DiffType, error) {
-	println("\n\n" + path + "\n\told=" + string(old) + "\n\tnew=" + string(new))
 	var (
 		ret            []DiffType
 		oldMap, newMap map[string]json.RawMessage
 		oldErr, newErr *json.UnmarshalTypeError
 		ok             bool
 	)
-	// sj   son.SetBytes()
 
 	err := json.Unmarshal(old, &oldMap)
 	if err != nil {
@@ -58,14 +57,10 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 	//  если чего-то не было, а мы его нашли, то записываем добавить
 	//  если что-то было, а его не стало, то записываем удалить
 
-	// fmt.Printf("%s =>\n\told=%s\n\tnew=%s\n", path, string(old), string(new))
-	fmt.Printf("\n\toldErr=%#v\n\tnew=%#v\n\n", oldErr, newErr)
-
 	switch {
 
 	case oldErr != nil && newErr != nil && oldErr.Value == "array" && newErr.Value == "array":
 		// у нас два массива. будет сравнивать
-		// TODO:
 		if changed, err := cmdArray(
 			[]byte(`{"array":`+string(old)+`}`),
 			[]byte(`{"array":`+string(new)+`}`),
@@ -74,7 +69,7 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 		} else {
 			if changed {
 				ret = append(ret, DiffType{
-					cmd:   "set",
+					cmd:   SetAction,
 					path:  path,
 					value: new,
 				})
@@ -85,7 +80,7 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 
 		if oldErr.Value != newErr.Value {
 			ret = append(ret, DiffType{
-				cmd:   "set",
+				cmd:   SetAction,
 				path:  path,
 				value: new,
 			})
@@ -93,16 +88,15 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 
 	case oldErr != nil && newErr == nil:
 		// было значение,а стало нет
-		// println("тут:" + string(old) + "=>" + string(new))
 		ret = append(ret, DiffType{
-			cmd:   "set",
+			cmd:   SetAction,
 			path:  path,
 			value: new,
 		})
 
 	case oldErr == nil && newErr != nil:
 		ret = append(ret, DiffType{
-			cmd:   "set",
+			cmd:   SetAction,
 			path:  path,
 			value: new,
 		})
@@ -118,9 +112,8 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 
 			if !ok {
 				// объект удален
-				// println("в new нет " + k + "=>" + string(oldVj))
 				ret = append(ret, DiffType{
-					cmd:   "delete",
+					cmd:   DelectAction,
 					path:  appendPath(path, k),
 					value: newV,
 				})
@@ -137,10 +130,9 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 
 		// проверяем объекты, что могли добавиться
 		for k, newV := range newMap {
-			// newVj, _ := newV.MarshalJSON()
 			if _, ok := oldMap[k]; !ok {
 				ret = append(ret, DiffType{
-					cmd:   "add",
+					cmd:   SetAction,
 					path:  appendPath(path, k),
 					value: newV,
 				})
@@ -172,7 +164,6 @@ func cmdArray(old, new []byte) (bool, error) {
 		return false, err
 	}
 
-	fmt.Printf("old=%#v\nnew=%#v\n", oldA.Array, newA.Array)
 	if len(oldA.Array) != len(newA.Array) {
 		return true, nil
 	}
