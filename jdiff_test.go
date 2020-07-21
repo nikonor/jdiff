@@ -20,15 +20,22 @@ func TestDiff(t *testing.T) {
 			want: nil,
 		},
 		{
-			name: "Cмена типа значения",
+			name: "Cмена типа значения #1",
 			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
-			new:  []byte(`{"one":1, "two":22,"three":{"four":44}}`),
+			new:  []byte(`{"one":1, "two":22,"three":{"four":"FOUR"}}`),
 			want: []DiffType{
 				{
 					cmd:   "set",
 					path:  "two",
 					value: []byte("22"),
 				},
+			},
+		},
+		{
+			name: "Cмена типа значения #2",
+			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":{"four":44}}`),
+			want: []DiffType{
 				{
 					cmd:   "set",
 					path:  "three.four",
@@ -49,18 +56,54 @@ func TestDiff(t *testing.T) {
 			},
 		},
 		{
-			name: "Добавили параметр",
-			old:  []byte(`{"one":1, "two":"TWO"}`),
-			new:  []byte(`{"one":1, "two":"TWO","three":true}`),
-			want: []DiffType{{
-				cmd:   "add",
-				path:  "three",
-				value: []byte("true"),
-			}},
+			name: "Был объект, а стало значение",
+			old:  []byte(`{"one":1, "two": {"four":"FOUR"}}`),
+			new:  []byte(`{"one":1, "two":"TWO"}`),
+			want: []DiffType{
+				{
+					cmd:   "set",
+					path:  "two",
+					value: []byte(`"TWO"`),
+				},
+			},
+		},
+		{
+			name: "Добавили параметр #1",
+			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"},"four":44}`),
+			want: []DiffType{
+				{
+					cmd:   "add",
+					path:  "four",
+					value: []byte("44"),
+				},
+			},
+		},
+		{
+			name: "Добавили параметр #2",
+			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
+			new:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR","five":false}}`),
+			want: []DiffType{
+				{
+					cmd:   "add",
+					path:  "three.five",
+					value: []byte("false"),
+				},
+			},
 		},
 		{
 			name: "Удалили параметр",
 			old:  []byte(`{"one":1, "two":"TWO","three":true}`),
+			new:  []byte(`{"one":1, "two":"TWO"}`),
+			want: []DiffType{{
+				cmd:   "delete",
+				path:  "three",
+				value: nil,
+			}},
+		},
+		{
+			name: "Удалили целый объект",
+			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{{
 				cmd:   "delete",

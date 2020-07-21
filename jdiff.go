@@ -76,7 +76,7 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 
 	case oldErr != nil && newErr == nil:
 		// было значение,а стало нет
-		println("тут:" + string(old) + "=>" + string(new))
+		// println("тут:" + string(old) + "=>" + string(new))
 		ret = append(ret, DiffType{
 			cmd:   "set",
 			path:  path,
@@ -84,6 +84,11 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 		})
 
 	case oldErr == nil && newErr != nil:
+		ret = append(ret, DiffType{
+			cmd:   "set",
+			path:  path,
+			value: new,
+		})
 
 	case oldErr == nil && newErr == nil:
 		// у нас два объекта
