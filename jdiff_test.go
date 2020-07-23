@@ -25,9 +25,9 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":22,"three":{"four":"FOUR"}}`),
 			want: []DiffType{
 				{
-					cmd:   SetAction,
-					path:  "two",
-					value: []byte("22"),
+					Cmd:   SetAction,
+					Path:  "two",
+					Value: []byte("22"),
 				},
 			},
 		},
@@ -37,9 +37,9 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO","three":{"four":44}}`),
 			want: []DiffType{
 				{
-					cmd:   SetAction,
-					path:  "three.four",
-					value: []byte("44"),
+					Cmd:   SetAction,
+					Path:  "three.four",
+					Value: []byte("44"),
 				},
 			},
 		},
@@ -49,9 +49,9 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two": {"four":"FOUR"}}`),
 			want: []DiffType{
 				{
-					cmd:   SetAction,
-					path:  "two",
-					value: []byte(`{"four":"FOUR"}`),
+					Cmd:   SetAction,
+					Path:  "two",
+					Value: []byte(`{"four":"FOUR"}`),
 				},
 			},
 		},
@@ -61,9 +61,9 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{
 				{
-					cmd:   SetAction,
-					path:  "two",
-					value: []byte(`"TWO"`),
+					Cmd:   SetAction,
+					Path:  "two",
+					Value: []byte(`"TWO"`),
 				},
 			},
 		},
@@ -73,9 +73,9 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"},"four":44}`),
 			want: []DiffType{
 				{
-					cmd:   SetAction,
-					path:  "four",
-					value: []byte("44"),
+					Cmd:   SetAction,
+					Path:  "four",
+					Value: []byte("44"),
 				},
 			},
 		},
@@ -85,9 +85,9 @@ func TestDiff(t *testing.T) {
 			new:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR","five":false}}`),
 			want: []DiffType{
 				{
-					cmd:   SetAction,
-					path:  "three.five",
-					value: []byte("false"),
+					Cmd:   SetAction,
+					Path:  "three.five",
+					Value: []byte("false"),
 				},
 			},
 		},
@@ -96,9 +96,9 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":true}`),
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{{
-				cmd:   DelectAction,
-				path:  "three",
-				value: nil,
+				Cmd:   DelectAction,
+				Path:  "three",
+				Value: nil,
 			}},
 		},
 		{
@@ -106,9 +106,9 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":{"four":"FOUR"}}`),
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{{
-				cmd:   DelectAction,
-				path:  "three",
-				value: nil,
+				Cmd:   DelectAction,
+				Path:  "three",
+				Value: nil,
 			}},
 		},
 		{
@@ -116,9 +116,9 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":[1,2,3,128]}`),
 			new:  []byte(`{"one":1, "two":"TWO"}`),
 			want: []DiffType{{
-				cmd:   DelectAction,
-				path:  "three",
-				value: nil,
+				Cmd:   DelectAction,
+				Path:  "three",
+				Value: nil,
 			}},
 		},
 		{
@@ -126,9 +126,9 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO"}`),
 			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}]}`),
 			want: []DiffType{{
-				cmd:   SetAction,
-				path:  "three",
-				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"}]`),
+				Cmd:   SetAction,
+				Path:  "three",
+				Value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"}]`),
 			}},
 		},
 		{
@@ -136,9 +136,9 @@ func TestDiff(t *testing.T) {
 			old:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"}]}`),
 			new:  []byte(`{"one":1, "two":"TWO","three":[{"key":1,"val":"1"},{"key":2, "val":"2"},{"key":3,"val":"3"}]}`),
 			want: []DiffType{{
-				cmd:   SetAction,
-				path:  "three",
-				value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"},{"key":3,"val":"3"}]`),
+				Cmd:   SetAction,
+				Path:  "three",
+				Value: []byte(`[{"key":1,"val":"1"},{"key":2, "val":"2"},{"key":3,"val":"3"}]`),
 			}},
 		},
 		{

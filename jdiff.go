@@ -11,14 +11,14 @@ const (
 )
 
 type DiffType struct {
-	cmd   string
-	path  string
-	value json.RawMessage
+	Cmd   string
+	Path  string
+	Value json.RawMessage
 }
 
 func (d DiffType) String() string {
-	j, _ := d.value.MarshalJSON()
-	return d.path + "=>" + string(j)
+	j, _ := d.Value.MarshalJSON()
+	return d.Path + "=>" + string(j)
 }
 
 func JDiff(old, new []byte) ([]DiffType, error) {
@@ -69,9 +69,9 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 		} else {
 			if changed {
 				ret = append(ret, DiffType{
-					cmd:   SetAction,
-					path:  path,
-					value: new,
+					Cmd:   SetAction,
+					Path:  path,
+					Value: new,
 				})
 			}
 		}
@@ -80,25 +80,25 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 
 		if oldErr.Value != newErr.Value {
 			ret = append(ret, DiffType{
-				cmd:   SetAction,
-				path:  path,
-				value: new,
+				Cmd:   SetAction,
+				Path:  path,
+				Value: new,
 			})
 		}
 
 	case oldErr != nil && newErr == nil:
 		// было значение,а стало нет
 		ret = append(ret, DiffType{
-			cmd:   SetAction,
-			path:  path,
-			value: new,
+			Cmd:   SetAction,
+			Path:  path,
+			Value: new,
 		})
 
 	case oldErr == nil && newErr != nil:
 		ret = append(ret, DiffType{
-			cmd:   SetAction,
-			path:  path,
-			value: new,
+			Cmd:   SetAction,
+			Path:  path,
+			Value: new,
 		})
 
 	case oldErr == nil && newErr == nil:
@@ -113,9 +113,9 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 			if !ok {
 				// объект удален
 				ret = append(ret, DiffType{
-					cmd:   DelectAction,
-					path:  appendPath(path, k),
-					value: newV,
+					Cmd:   DelectAction,
+					Path:  appendPath(path, k),
+					Value: newV,
 				})
 				continue
 			}
@@ -132,9 +132,9 @@ func jdiff(path string, old, new []byte) ([]DiffType, error) {
 		for k, newV := range newMap {
 			if _, ok := oldMap[k]; !ok {
 				ret = append(ret, DiffType{
-					cmd:   SetAction,
-					path:  appendPath(path, k),
-					value: newV,
+					Cmd:   SetAction,
+					Path:  appendPath(path, k),
+					Value: newV,
 				})
 			}
 		}
